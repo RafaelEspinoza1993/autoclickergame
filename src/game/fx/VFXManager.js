@@ -41,8 +41,8 @@ export class VFXManager {
   explosion(x, y) {
     if (this.scene.textures.exists('explosion')) {
       const boom = this.scene.add.sprite(x, y, 'explosion')
-        .setScale(0.8)
-        .setAlpha(0.9)
+        .setScale(1.2)
+        .setAlpha(1)
         .setDepth(6);
       if (this.scene.anims.exists('explode')) {
         boom.play('explode');
@@ -51,21 +51,37 @@ export class VFXManager {
     }
 
     this.play(x, y, 'sparkle', {
-      lifespan: 400,
-      scale: { start: 0.5, end: 0 },
-      speed: { min: 80, max: 200 },
-      quantity: 12,
-      tint: [0xff0000, 0xff8800, 0xffdd00, 0xffffff],
+      lifespan: 500,
+      scale: { start: 0.8, end: 0 },
+      speed: { min: 100, max: 300 },
+      quantity: 20,
+      tint: [0xff0000, 0xff4400, 0xff8800, 0xffcc00, 0xffffff],
+    });
+
+    this.play(x, y, 'sparkle', {
+      lifespan: 800,
+      scale: { start: 1.2, end: 0 },
+      speed: { min: 30, max: 120 },
+      quantity: 10,
+      tint: [0xff6600, 0xffaa00, 0xffdd00],
     });
   }
 
   clickSparkle(x, y) {
     this.play(x, y, 'sparkle', {
-      lifespan: 500,
-      scale: { start: 0.4, end: 0 },
-      speed: { min: 100, max: 250 },
-      quantity: 6,
-      tint: [0xffd700, 0xff69b4, 0x87ceeb, 0xffffff],
+      lifespan: 600,
+      scale: { start: 0.6, end: 0 },
+      speed: { min: 120, max: 300 },
+      quantity: 12,
+      tint: [0xffd700, 0xff69b4, 0x87ceeb, 0xffffff, 0xff2d6f],
+    });
+
+    this.play(x, y, 'sparkle', {
+      lifespan: 300,
+      scale: { start: 0.5, end: 0 },
+      speed: { min: 30, max: 80 },
+      quantity: 8,
+      tint: [0xffffff, 0xffdd88],
     });
   }
 

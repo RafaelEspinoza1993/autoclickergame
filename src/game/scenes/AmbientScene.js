@@ -2,17 +2,27 @@ import Phaser from 'phaser';
 import { UPGRADES, RAINBOW } from '../../data/constants';
 import { useGameStore } from '../../store/useGameStore';
 
+const WORK_STATIONS = [
+  { x: 0.18, iconFrame: 48 },
+  { x: 0.38, iconFrame: 72 },
+  { x: 0.58, iconFrame: 96 },
+  { x: 0.78, iconFrame: 120 },
+];
+
 export class AmbientScene extends Phaser.Scene {
   constructor() {
     super({ key: 'AmbientScene' });
   }
 
   preload() {
-    const assets = [
+    const sheets = [
       ['icons', 'assets/icons/IconsEssential.png', 16, 16],
+      ['soldier-idle', 'assets/characters/Soldier/Soldier-Idle.png', 100, 100],
+      ['soldier-walk', 'assets/characters/Soldier/Soldier-Walk.png', 100, 100],
+      ['soldier-work', 'assets/characters/Soldier/Soldier-Attack01.png', 100, 100],
       ['orc-walk', 'assets/characters/Orc/Orc-Walk.png', 100, 100],
     ];
-    assets.forEach(([key, path, fw, fh]) => {
+    sheets.forEach(([key, path, fw, fh]) => {
       if (!this.textures.exists(key)) {
         this.load.spritesheet(key, path, { frameWidth: fw, frameHeight: fh });
       }
@@ -20,6 +30,13 @@ export class AmbientScene extends Phaser.Scene {
   }
 
   create() {
+    this.w = this.scale.width;
+    this.h = this.scale.height;
+    this.groundY = this.h - 40;
+    this.workers = [];
+    this.workTimer = 0;
+    this.maxWorkers = 4;
+
     if (!this.textures.exists('sparkle')) {
       const g = this.make.graphics({ add: false });
       g.fillStyle(0xffffff, 1);
@@ -28,32 +45,15 @@ export class AmbientScene extends Phaser.Scene {
       g.destroy();
     }
 
-    if (!this.anims.exists('ambient-orc-walk')) {
-      this.anims.create({
-        key: 'ambient-orc-walk',
-        frames: this.anims.generateFrameNumbers('orc-walk', { start: 0, end: 3 }),
-        frameRate: 6,
-        repeat: -1,
-      });
-    }
-
-    this.groundY = this.scale.height - 30;
-    this.turrets = {};
-    this.foes = [];
-    this.shots = [];
-    this.foeTimer = 0;
-    this.starOffset = 0;
-    this.w = this.scale.width;
-    this.h = this.scale.height;
+    this._registerAnimations();
 
     this.bgLayer = this.add.container().setDepth(0);
-    this.shotGfx = this.add.graphics().setDepth(4);
-    this.turretLayer = this.add.container().setDepth(3);
-    this.foeLayer = this.add.container().setDepth(2);
-    this.starLayer = this.add.container().setDepth(1);
+    this.stationLayer = this.add.container().setDepth(1);
+    this.workerLayer = this.add.container().setDepth(3);
+    this.fxLayer = this.add.container().setDepth(4);
 
     this.drawBackground();
-    this.startStarField();
+    this.createWorkstations();
 
     window.addEventListener('arena:celebrate', this._onCelebrate);
     this.scale.on('resize', this._onResize, this);
@@ -61,11 +61,39 @@ export class AmbientScene extends Phaser.Scene {
 
   update(_time, delta) {
     delta = Math.min(delta, 50);
-    this.tickTurrets(delta);
-    this.tickFoes(delta);
-    this.tickShots();
-    this.tickStars();
-    this.drawShots();
+    this.tickWorkers(delta);
+    this.tickWorkstations(delta);
+  }
+
+  // ── animations ──
+
+  _registerAnimations() {
+    if (!this.anims.exists('worker-walk')) {
+      this.anims.create({
+        key: 'worker-walk',
+        frames: this.anims.generateFrameNumbers('soldier-walk', { start: 0, end: 7 }),
+        frameRate: 10,
+        repeat: -1,
+      });
+      this.anims.create({
+        key: 'worker-idle',
+        frames: this.anims.generateFrameNumbers('soldier-idle', { start: 0, end: 5 }),
+        frameRate: 5,
+        repeat: -1,
+      });
+      this.anims.create({
+        key: 'worker-work',
+        frames: this.anims.generateFrameNumbers('soldier-work', { start: 0, end: 5 }),
+        frameRate: 8,
+        repeat: -1,
+      });
+      this.anims.create({
+        key: 'ambient-orc-walk',
+        frames: this.anims.generateFrameNumbers('orc-walk', { start: 0, end: 7 }),
+        frameRate: 6,
+        repeat: -1,
+      });
+    }
   }
 
   // ── background ──
@@ -73,169 +101,197 @@ export class AmbientScene extends Phaser.Scene {
   drawBackground() {
     this.bgLayer.removeAll(true);
     const g = this.make.graphics({ add: false });
-    g.fillGradientStyle(0x1a1230, 0x1a1230, 0x0a0818, 0x0a0818, 1);
-    g.fillRect(0, 0, this.w, this.h);
-    g.fillStyle(0x221838, 1);
-    g.fillRect(0, this.groundY, this.w, this.h - this.groundY);
-    g.fillStyle(0x2a1f42, 1);
-    for (let i = 0; i < 14; i++) {
-      g.fillRect((i * 40) % (this.w + 12) - 6, this.groundY + 6, 6, 2);
+    const gy = this.groundY;
+
+    g.fillGradientStyle(0x15102a, 0x15102a, 0x0d0a1c, 0x0d0a1c, 1);
+    g.fillRect(0, 0, this.w, gy);
+
+    const skyColor = Phaser.Display.Color.IntegerToColor(0x15102a);
+    for (let i = 0; i < 6; i++) {
+      const bx = this.w * 0.12 + i * this.w * 0.14;
+      const bw = this.w * 0.10;
+      const bh = gy * (0.3 + Math.random() * 0.3);
+      const by = gy - bh;
+      g.fillStyle(0x1e1840, 0.3);
+      g.fillRect(bx, by, bw, bh);
+
+      for (let wy = by + 12; wy < gy - 8; wy += 18) {
+        g.fillStyle(0xffdd88, 0.08 + Math.random() * 0.07);
+        g.fillRect(bx + 8, wy, bw - 16, 8);
+      }
     }
+
+    g.fillStyle(0x1e1838, 1);
+    g.fillRect(0, gy, this.w, this.h - gy);
+    g.fillStyle(0x2a1f42, 1);
+    g.fillRect(0, gy, this.w, 3);
+
+    for (let i = 0; i < 12; i++) {
+      const lx = (i * 31 + 7) % this.w;
+      g.fillStyle(0x362750, 0.5);
+      g.fillRect(lx, gy + 8, 3, 6);
+    }
+
+    g.fillStyle(0x1a1428, 0.6);
+    g.fillRect(0, gy - 2, this.w, 2);
+
     this.bgLayer.add(g);
   }
 
-  // ── stars ──
+  // ── workstations ──
 
-  startStarField() {
-    this.starLayer.removeAll(true);
-    this.stars = [];
-    for (let i = 0; i < 30; i++) {
-      const s = this.add.image(
-        Math.random() * this.w,
-        Math.random() * (this.groundY * 0.7),
-        'sparkle'
-      ).setAlpha(0.12 + Math.random() * 0.15)
-       .setScale(0.25 + Math.random() * 0.35)
-       .setDepth(1);
-      this.starLayer.add(s);
-      this.stars.push(s);
-    }
-  }
+  createWorkstations() {
+    this.stationLayer.removeAll(true);
+    this.stations = WORK_STATIONS.map(s => {
+      const sx = this.w * s.x;
+      const sy = this.groundY - 4;
+      const icon = this.add.sprite(sx, sy, 'icons', s.iconFrame)
+        .setScale(1.4).setTint(0x88ddff).setAlpha(0.7);
+      this.stationLayer.add(icon);
 
-  tickStars() {
-    this.starOffset -= 0.15;
-    this.stars.forEach((s) => {
-      s.x = (s.x + this.w - 0.15) % (this.w + 20) - 10;
+      const glow = this.add.circle(sx, sy, 14, 0x88ddff, 0.08).setDepth(1.5);
+      this.stationLayer.add(glow);
+
+      return {
+        x: sx,
+        y: sy,
+        icon,
+        glow,
+        worker: null,
+        tween: this.tweens.add({
+          targets: glow,
+          alpha: 0.03,
+          duration: 1200 + Math.random() * 800,
+          yoyo: true,
+          repeat: -1,
+        }),
+      };
     });
   }
 
-  // ── turrets ──
-
-  tickTurrets(delta) {
-    const owned = useGameStore.getState().owned;
-    const ownedUpgrades = UPGRADES.filter(u => owned[u.id]);
-    const ownedIds = new Set(ownedUpgrades.map(u => u.id));
-
-    Object.keys(this.turrets).forEach(id => {
-      if (!ownedIds.has(id)) {
-        this.turrets[id].sprite.destroy();
-        delete this.turrets[id];
-      }
-    });
-
-    ownedUpgrades.forEach((u, i) => {
-      let turret = this.turrets[u.id];
-      if (!turret) {
-        const color = Phaser.Display.Color.HexStringToColor(u.color.replace('#', '')).color;
-        const frame = (i * 7 + 24) % 357;
-        const sprite = this.add.sprite(20 + i * 26, this.groundY - 2, 'icons', frame)
-          .setScale(1.2).setTint(color).setDepth(3);
-        this.turretLayer.add(sprite);
-        turret = { id: u.id, sprite, cd: 0, rate: 1000 + i * 200, bob: Math.random() * 6 };
-        this.turrets[u.id] = turret;
-      }
-      turret.bob += 0.08;
-      turret.sprite.y = this.groundY - 2 + Math.sin(turret.bob) * 1.5;
-      turret.cd -= delta;
-      if (turret.cd <= 0 && this.foes.some(f => f.active && !f.dead)) {
-        turret.cd = turret.rate;
-        const target = this.foes.find(f => f.active && !f.dead);
-        if (target) {
-          this.shots.push({
-            x: turret.sprite.x + 10,
-            y: turret.sprite.y - 6,
-            color: u.color,
-            target,
-            alive: true,
-          });
-        }
-      }
+  tickWorkstations(delta) {
+    const gs = useGameStore.getState();
+    const ownedCount = UPGRADES.filter(u => gs.owned[u.id]).length;
+    this.stations.forEach((st, i) => {
+      const active = i < ownedCount;
+      st.icon.setAlpha(active ? 0.85 : 0.15);
+      st.glow.setAlpha(active ? 0.1 : 0.02);
     });
   }
 
-  // ── decorative foes ──
+  // ── workers (citizens) ──
 
-  tickFoes(delta) {
-    this.foeTimer -= delta;
-    if (this.foeTimer <= 0 && Object.keys(this.turrets).length > 0) {
-      this.foeTimer = 1200 + Math.random() * 1000;
-      const sprite = this.add.sprite(this.w + 10, this.groundY - 2, 'orc-walk', 2)
-        .setScale(0.25).setDepth(2).setFlipX(true).play('ambient-orc-walk');
-      this.foeLayer.add(sprite);
-      this.foes.push({ sprite, hp: 1, dead: false, hitTimer: 0 });
-    }
+  spawnWorker() {
+    const gs = useGameStore.getState();
+    const ownedCount = UPGRADES.filter(u => gs.owned[u.id]).length;
+    if (ownedCount === 0) return;
+    if (this.workers.length >= this.maxWorkers) return;
 
-    for (let i = this.foes.length - 1; i >= 0; i--) {
-      const f = this.foes[i];
-      if (f.dead || !f.sprite.active) {
-        if (f.sprite.active) f.sprite.destroy();
-        this.foes.splice(i, 1);
-        continue;
-      }
-      f.sprite.x -= 0.8;
-      if (f.hitTimer > 0) {
-        f.hitTimer -= delta;
-        f.sprite.setTint(0xffffff);
-      } else {
-        f.sprite.clearTint();
-      }
-      if (f.sprite.x < -20) {
-        f.sprite.destroy();
-        this.foes.splice(i, 1);
-      }
-    }
-  }
+    const stationIdx = Math.floor(Math.random() * Math.min(ownedCount, WORK_STATIONS.length));
+    const station = this.stations[stationIdx];
+    if (station.worker) return;
 
-  // ── shots ──
+    const fromLeft = Math.random() > 0.5;
+    const startX = fromLeft ? -30 : this.w + 30;
+    const endX = fromLeft ? this.w + 30 : -30;
+    const sprite = this.add.sprite(startX, this.groundY - 2, 'soldier-walk', 0)
+      .setScale(0.35).setDepth(3).setFlipX(!fromLeft);
 
-  tickShots() {
-    for (let i = this.shots.length - 1; i >= 0; i--) {
-      const sh = this.shots[i];
-      if (!sh.alive) { this.shots.splice(i, 1); continue; }
-      if (!sh.target.active || sh.target.dead) {
-        sh.alive = false;
-        this.shots.splice(i, 1);
-        continue;
-      }
-      const dx = sh.target.sprite.x - sh.x;
-      const dy = (sh.target.sprite.y - 6) - sh.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 12) {
-        sh.target.hitTimer = 100;
-        sh.target.hp--;
-        if (sh.target.hp <= 0) {
-          sh.target.dead = true;
-          this._burst(sh.target.sprite.x, sh.target.sprite.y);
-        }
-        this.shots.splice(i, 1);
-        continue;
-      }
-      const speed = 4;
-      sh.x += (dx / dist) * speed;
-      sh.y += (dy / dist) * speed;
-    }
-  }
+    this.workerLayer.add(sprite);
 
-  drawShots() {
-    this.shotGfx.clear();
-    this.shots.forEach(sh => {
-      this.shotGfx.fillStyle(0xffffff, 0.9);
-      this.shotGfx.fillRect(sh.x - 2, sh.y - 1, 5, 3);
-      const c = Phaser.Display.Color.HexStringToColor(sh.color.replace('#', '')).color;
-      this.shotGfx.fillStyle(c, 0.7);
-      this.shotGfx.fillRect(sh.x - 1, sh.y, 3, 1);
+    const walkSpeed = 25 + Math.random() * 15;
+    const workTime = 3000 + Math.random() * 4000;
+
+    const worker = {
+      sprite,
+      station,
+      phase: 'walkIn',
+      fromLeft,
+      walkSpeed,
+      workTime,
+      workElapsed: 0,
+      flipX: fromLeft,
+    };
+    station.worker = worker;
+    this.workers.push(worker);
+
+    sprite.play('worker-walk');
+    this._tweenWalk(worker, station.x, () => {
+      worker.phase = 'working';
+      sprite.play('worker-work');
+      this._emitWorkParticles(station.x, station.y - 10);
+      this.time.delayedCall(workTime, () => {
+        if (!sprite.active) return;
+        worker.phase = 'walkOut';
+        sprite.play('worker-walk').setFlipX(fromLeft);
+        this._tweenWalk(worker, endX, () => {
+          sprite.destroy();
+          station.worker = null;
+          this.workers = this.workers.filter(w => w !== worker);
+        });
+      });
     });
   }
 
-  // ── particles ──
+  _tweenWalk(worker, targetX, onComplete) {
+    const sprite = worker.sprite;
+    const dist = Math.abs(targetX - sprite.x);
+    const duration = (dist / worker.walkSpeed) * 1000;
+
+    if (targetX > sprite.x) sprite.setFlipX(false);
+    else sprite.setFlipX(true);
+
+    this.tweens.add({
+      targets: sprite,
+      x: targetX,
+      duration,
+      ease: 'Linear',
+      onComplete,
+    });
+  }
+
+  _emitWorkParticles(x, y) {
+    this.time.addEvent({
+      delay: 400,
+      repeat: 6,
+      callback: () => {
+        if (!this.scene.isActive()) return;
+        this.add.particles(x + (Math.random() - 0.5) * 8, y, 'sparkle', {
+          speed: { min: 5, max: 15 },
+          scale: { start: 0.3, end: 0 },
+          alpha: { start: 0.8, end: 0 },
+          lifespan: 600,
+          quantity: 1,
+          tint: [0x88ddff, 0xaaffaa, 0xffdd88],
+          emitting: false,
+        }).explode(1);
+      },
+    });
+  }
+
+  tickWorkers(delta) {
+    this.workTimer -= delta;
+    if (this.workTimer <= 0) {
+      this.workTimer = 2000 + Math.random() * 3000;
+      this.spawnWorker();
+    }
+
+    this.workers.forEach(w => {
+      if (w.phase === 'working' && w.sprite.active) {
+        w.sprite.y = this.groundY - 2 + Math.sin(this.time.now * 0.004) * 1.5;
+      }
+    });
+  }
+
+  // ── celebration ──
 
   _burst(x, y) {
-    for (let k = 0; k < 6; k++) {
+    for (let k = 0; k < 8; k++) {
       this.add.particles(x, y, 'sparkle', {
-        speed: { min: 15, max: 40 },
+        speed: { min: 15, max: 50 },
         scale: { start: 0.5, end: 0 },
         alpha: { start: 1, end: 0 },
-        lifespan: 500,
+        lifespan: 600,
         quantity: 1,
         tint: RAINBOW[Math.floor(Math.random() * 7)],
         emitting: false,
@@ -244,18 +300,20 @@ export class AmbientScene extends Phaser.Scene {
   }
 
   _onCelebrate = () => {
-    this.foes.forEach(f => {
-      if (!f.dead) {
-        this._burst(f.sprite.x, f.sprite.y);
+    this.workers.forEach(w => {
+      if (w.sprite.active) {
+        this._burst(w.sprite.x, w.sprite.y);
       }
     });
   };
 
+  // ── resize ──
+
   _onResize = (gameSize) => {
     this.w = gameSize.width;
     this.h = gameSize.height;
-    this.groundY = this.h - 30;
+    this.groundY = this.h - 40;
     this.drawBackground();
-    this.startStarField();
+    this.createWorkstations();
   };
 }

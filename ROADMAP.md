@@ -310,44 +310,58 @@ Los efectos usan la textura procedural `sparkle` (generada en BootScene/CoreScen
 
 ## 9. Fase 5: Ambient Scene + Torretas
 
-**Estado:** ✅ **Completado** (migrado de Canvas 2D a Phaser.Game separado)
+**Estado:** ✅ **Completado** (Fábrica viviente con ciudadanos Soldier y estaciones de trabajo)
 
 ### 9.1 Archivos creados/modificados
 
 | Archivo | Descripción |
 |---------|-------------|
-| `src/game/scenes/AmbientScene.js` | ✅ Escena Phaser con gradiente, estrellas, suelo, torretas (Icons_Essential), enemigos decorativos (Orc sprites), disparos, partículas |
+| `src/game/scenes/AmbientScene.js` | ✅ Escena Phaser fábrica: ciudadanos Soldier trabajando con patrones, estaciones Icons_Essential, fondo con edificios |
 | `src/components/AmbientPhaser.jsx` | ✅ Componente React que monta AmbientScene como Phaser.Game separado con RESIZE |
 | `src/App.jsx` | 🔄 Importa `AmbientPhaser` en vez de `AmbientScene` |
-| `src/components/AmbientScene.jsx` | ❌ Reemplazado — código Canvas 2D ya no se usa |
+| `src/components/AmbientScene.jsx` | ❌ Eliminado — reemplazado por Phaser |
 
 ### 9.2 Funcionalidades migradas
 
 | Funcionalidad | Canvas 2D (antes) | Phaser (ahora) |
 |--------------|-------------------|----------------|
 | Cielo gradiente | `createLinearGradient` | `Graphics.fillGradientStyle` |
-| Suelo con líneas decorativas | `fillRect` | `Graphics.fillRect` con bucles |
-| Estrellas flotantes | `fillRect` loop manual | Sprites imagen con `tickStars()` parallax |
-| Torretas (mejoras) | `fillText(emoji)` con glow | Sprites `Icons_Essential` con tint + animación bob |
-| Enemigos decorativos | `fillText('👾')` | Sprites `orc-walk` con animación, flipX |
-| Disparos | `fillRect` | `Graphics.fillRect` con glow de color de mejora |
-| Partículas muerte | `fillRect` loop manual | `Phaser.GameObjects.Particles` con sparkle |
-| Partículas celebración | `fillRect` loop manual | `Phaser.GameObjects.Particles` con sparkle |
+| Edificios fondo | ❌ No existía | Siluetas con ventanas iluminadas |
+| Suelo con líneas decorativas | `fillRect` | `Graphics.fillRect` con textura |
+| Estrellas flotantes | `fillRect` loop manual | ❌ Reemplazado por edificios |
+| Torretas → Estaciones trabajo | `fillText(emoji)` con glow | Sprites `Icons_Essential` en posiciones fijas, activadas según mejoras |
+| Ciudadanos trabajando | ❌ No existía | Sprites `soldier-walk`/`soldier-work` con ciclo: walkIn → trabajar (Attack01) → walkOut |
+| Enemigos decorativos | `fillText('👾')` | ❌ Reemplazado por ciudadanos |
+| Disparos | `fillRect` | ❌ Reemplazado por sistema de trabajo |
+| Partículas muerte | `fillRect` loop manual | Partículas en estaciones mientras trabajan |
+| Partículas celebración | `fillRect` loop manual | `_burst()` con sparkle rainbow |
 
-### 9.3 Assets cargados
+### 9.3 Assets cargados por AmbientScene
 
 | Asset | Frame | Uso |
 |-------|-------|-----|
-| `IconsEssential.png` | 357 frames (16×16) | Torretas — frame = `(i * 7 + 24) % 357` con tint |
-| `Orc-Walk.png` | 4 frames (100×100, escala 0.25) | Enemigos decorativos — animación `ambient-orc-walk` |
-| `sparkle` | Procedural 8×8 | Estrellas y partículas |
+| `IconsEssential.png` | 357 frames (16×16) | Estaciones de trabajo con glow |
+| `Soldier-Idle.png` | 6 frames (100×100, escala 0.35) | Animación basé (no usada directa) |
+| `Soldier-Walk.png` | 8 frames (100×100, escala 0.35) | Ciudadanos caminando con flipX |
+| `Soldier-Attack01.png` | 6 frames (100×100, escala 0.35) | Animación "trabajando" en estación |
+| `sparkle` | Procedural 8×8 | Partículas de trabajo y celebración |
 
-### 9.4 Observaciones
+### 9.4 Sistema de trabajo (Work Pattern)
 
-- Es un `Phaser.Game` **separado** (como ArenaGame), con `Scale.RESIZE` y `backgroundColor: '#1a1230'`
-- Las animaciones se registran con prefijo `ambient-` para evitar colisiones con las del juego principal
-- Escucha evento `arena:celebrate` para hacer _burst en enemigos vivos
-- El contenedor React (`.ambient`) mantiene el estilo fixed bottom-right, z-index, border-radius y etiquetas "FÁBRICA · LIVE" + canción |
+```
+walkIn (soldier-walk) → llegar a estación → trabajar (soldier-work, 3-4s) → walkOut (soldier-walk)
+  ────►                    ┌─► ⚡┐                           ────►
+  desde                    │ icon│                           hacia
+  fuera                     └─► ⚡┘                           fuera
+  de pantalla                                              de pantalla
+```
+
+- Máximo 4 ciudadanos simultáneos
+- Spawn cada 2-5 segundos si hay mejoras compradas
+- Cada ciudadano elige una estación aleatoria entre las desbloqueadas
+- Partículas sparkle emanan de la estación mientras trabajan
+- Animación idle sutil (bob) mientras trabajan
+- En celebración (arena:celebrate), todos los ciudadanos hacen burst |
 
 ---
 
@@ -472,7 +486,7 @@ Fase 1: Core Clicker    ████████████░░░░░░�
 Fase 2: Asset Loading   ████████████████████  ✅  Completo (BootScene + assets + BackgroundScene)
 Fase 3: RPG Characters  ████████████████████  ✅  Completo (Enemy/Turret/Projectile + ArenaScene migrada)
 Fase 4: VFX System      ████████████████████  ✅  Completado (VFXManager 10 efectos integrados)
-Fase 5: Ambient Scene   ████████████████████  ✅  Completado (Phaser con sprites Icons_Essential + Orc)
+Fase 5: Ambient Scene   ████████████████████  ✅  Fábrica viviente con ciudadanos + estaciones
 Fase 6: Polish & Juice  ████████████████████  ✅  Todo listo (VFX + Audio + animaciones)
 Fase 7: Deploy          ████████████████████  ✅  Completado
 ```

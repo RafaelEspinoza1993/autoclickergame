@@ -94,16 +94,20 @@ Arrancar Fase 2 del ROADMAP: sistema de carga de assets (BootScene + estructura 
 | ROADMAP.md Fase 4 actualizado | ✅ |
 | Build exitoso | ✅ |
 
-### Sesión 3 — Fase 5: Ambient Scene Phaser ✅
+### Sesión 3 — Fase 5: Ambient Scene Phaser con Ciudadanos ✅
 
 | Tarea | Estado |
 |-------|--------|
-| `src/game/scenes/AmbientScene.js` — gradiente, estrellas, suelo, torretas, enemigos, disparos, partículas | ✅ |
+| `src/game/scenes/AmbientScene.js` — fábrica viviente con ciudadanos Soldier, estaciones Icons_Essential, fondo edificios, work patterns (walkIn→trabajar→walkOut) | ✅ |
 | `src/components/AmbientPhaser.jsx` — wrapper React con Phaser.Game + overlay UI | ✅ |
 | `App.jsx` actualizado para usar `AmbientPhaser` | ✅ |
-| Animación `ambient-orc-walk` registrada localmente | ✅ |
-| `arena:celebrate` listener para celebración | ✅ |
-| `Scale.RESIZE` + eventos resize en la escena | ✅ |
+| Animaciones registradas: `worker-walk` (8fr), `worker-idle` (6fr), `worker-work` (6fr) | ✅ |
+| 4 estaciones de trabajo con glow animado, activadas según mejoras compradas | ✅ |
+| Ciudadanos spawn cada 2-5s, eligen estación, trabajan 3-4s con partículas, se van | ✅ |
+| Fondo con edificios silueta y ventanas iluminadas | ✅ |
+| VFX explosion buffed (30 partículas, colores fuego + blanco) | ✅ |
+| VFX clickSparkle buffed (20 partículas, doble burst) | ✅ |
+| `AmbientScene.jsx` original eliminado | ✅ |
 | ROADMAP.md Fase 5 actualizado | ✅ |
 | Build exitoso | ✅ |
 
