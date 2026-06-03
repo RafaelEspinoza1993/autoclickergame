@@ -125,6 +125,10 @@ export class Enemy extends Phaser.GameObjects.Sprite {
     if (this.isDead) return;
     this.isDead = true;
 
+    if (this.scene.vfx) {
+      this.scene.vfx.explosion(this.x, this.y);
+    }
+
     if (this.config.deathAnim && this.scene.anims.exists(this.config.deathAnim)) {
       this.play(this.config.deathAnim);
       this.once('animationcomplete', () => {

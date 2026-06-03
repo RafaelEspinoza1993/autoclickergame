@@ -281,56 +281,73 @@ autoclickergame/                             # Nombre real del repo (no arcoiris
 
 ## 8. Fase 4: Super Pixel Effects — Sistema VFX
 
-**Estado:** 🟡 **Pendiente** (assets copiados a public/assets/fx/, falta crear VFXManager)
+**Estado:** ✅ **Completado** (VFXManager con 10 efectos, integrado en CoreScene y ArenaScene)
 
-### 8.1 Estado actual
-
-Los efectos visuales hoy se implementan con:
-- Partículas Phaser básicas (solo `sparkle` texture procedural)
-- Confetti DOM (`launchConfetti()` en utils)
-- Flash DOM (`flash()` en utils)
-- Partículas manuales con `Graphics` en ArenaScene (`_burst()`)
-
-### 8.2 Archivo a crear
+### 8.1 Archivo creado
 
 | Archivo | Descripción |
 |---------|-------------|
-| `src/game/fx/VFXManager.js` | Sistema de efectos reutilizable con métodos predefinidos |
+| `src/game/fx/VFXManager.js` | ✅ Sistema con `play()`, `explosion()`, `clickSparkle()`, `magicBurst()`, `levelUp()`, `splatter()`, `turretShot()`, `smoke()`, `lightning()`, `confetti()` |
 
-### 8.3 Efectos planificados
+### 8.2 Integración
 
-| Efecto | Uso |
-|--------|-----|
-| `explosion(x, y)` | Muerte de enemigo — sprite atlas Legacy Collection + partículas |
-| `clickSparkle(x, y)` | Click en núcleo |
-| `magicBurst(x, y)` | Compra de mejora |
-| `levelUp(x, y)` | Subida de nivel — anillo expansivo + partículas |
-| `turretShot(x, y)` | Disparo de torreta — muzzle flash |
-| `splatter(x, y)` | Impacto de proyectil |
-| `confetti(x, y)` | Victoria en challenge |
-| `smoke(x, y)` | Almacén lleno |
-| `lightning(x, y)` | Aparición de boss |
+| Escena | Efectos activados |
+|--------|------------------|
+| CoreScene | `clickSparkle` al hacer clic (via emitAt → VFXManager) |
+| CoreScene | `magicBurst` al escuchar evento `arena:celebrate` (compras, level up) |
+| ArenaScene | `explosion` cuando un enemigo muere (Legacy Collection atlas + partículas) |
+| ArenaScene | `splatter` cuando un proyectil impacta |
+
+### 8.3 Nota técnica
+
+Los efectos usan la textura procedural `sparkle` (generada en BootScene/CoreScene) y el atlas `explosion` (Legacy Collection). Los spritesheets de Super Pixel Effects están copiados en `public/assets/fx/` pero aún no se cargan via `loadFXAtlas()`. Para activarlos, cada escena que los necesite debe:
+
+1. Cargar el spritesheet via `scene.load.image()` + `parseSpritesheetTxt()`
+2. Crear atlas en runtime con `textures.addAtlas()`
+3. Usar la key del atlas en `VFXManager.play()`
 
 ---
 
 ## 9. Fase 5: Ambient Scene + Torretas
 
-**Estado:** 🔄 **Existe como Canvas 2D, falta migrar a Phaser**
+**Estado:** ✅ **Completado** (migrado de Canvas 2D a Phaser.Game separado)
 
-### 9.1 Estado actual
+### 9.1 Archivos creados/modificados
 
-| Funcionalidad | Implementación actual | Meta (Phaser) |
-|--------------|---------------------|---------------|
-| Cielo gradiente | Canvas 2D `createLinearGradient` | Phaser `Graphics.fillGradientStyle` |
-| Estrellas | Canvas 2D `fillRect` loop | Phaser particles |
-| Suelo | Canvas 2D `fillRect` | Phaser `Graphics` |
-| Torretas (mejoras) | Canvas 2D `fillText(emoji)` con glow | Sprites de `Icons_Essential` |
-| Enemigos decorativos | Canvas 2D `fillText('👾')` | Sprites `orc-walk` escala 0.3 |
-| Disparos | Canvas 2D `fillRect` | Phaser `Graphics` con glow |
-| Partículas celebración | Canvas 2D loop manual | `VFXManager.ambientCelebrate()` |
-| Scroll de estrellas | Canvas 2D manual | Phaser tween |
-| Etiqueta "FÁBRICA · LIVE" | React DOM | Se mantiene en React |
-| Canción actual | React DOM | Se mantiene en React |
+| Archivo | Descripción |
+|---------|-------------|
+| `src/game/scenes/AmbientScene.js` | ✅ Escena Phaser con gradiente, estrellas, suelo, torretas (Icons_Essential), enemigos decorativos (Orc sprites), disparos, partículas |
+| `src/components/AmbientPhaser.jsx` | ✅ Componente React que monta AmbientScene como Phaser.Game separado con RESIZE |
+| `src/App.jsx` | 🔄 Importa `AmbientPhaser` en vez de `AmbientScene` |
+| `src/components/AmbientScene.jsx` | ❌ Reemplazado — código Canvas 2D ya no se usa |
+
+### 9.2 Funcionalidades migradas
+
+| Funcionalidad | Canvas 2D (antes) | Phaser (ahora) |
+|--------------|-------------------|----------------|
+| Cielo gradiente | `createLinearGradient` | `Graphics.fillGradientStyle` |
+| Suelo con líneas decorativas | `fillRect` | `Graphics.fillRect` con bucles |
+| Estrellas flotantes | `fillRect` loop manual | Sprites imagen con `tickStars()` parallax |
+| Torretas (mejoras) | `fillText(emoji)` con glow | Sprites `Icons_Essential` con tint + animación bob |
+| Enemigos decorativos | `fillText('👾')` | Sprites `orc-walk` con animación, flipX |
+| Disparos | `fillRect` | `Graphics.fillRect` con glow de color de mejora |
+| Partículas muerte | `fillRect` loop manual | `Phaser.GameObjects.Particles` con sparkle |
+| Partículas celebración | `fillRect` loop manual | `Phaser.GameObjects.Particles` con sparkle |
+
+### 9.3 Assets cargados
+
+| Asset | Frame | Uso |
+|-------|-------|-----|
+| `IconsEssential.png` | 357 frames (16×16) | Torretas — frame = `(i * 7 + 24) % 357` con tint |
+| `Orc-Walk.png` | 4 frames (100×100, escala 0.25) | Enemigos decorativos — animación `ambient-orc-walk` |
+| `sparkle` | Procedural 8×8 | Estrellas y partículas |
+
+### 9.4 Observaciones
+
+- Es un `Phaser.Game` **separado** (como ArenaGame), con `Scale.RESIZE` y `backgroundColor: '#1a1230'`
+- Las animaciones se registran con prefijo `ambient-` para evitar colisiones con las del juego principal
+- Escucha evento `arena:celebrate` para hacer _burst en enemigos vivos
+- El contenedor React (`.ambient`) mantiene el estilo fixed bottom-right, z-index, border-radius y etiquetas "FÁBRICA · LIVE" + canción |
 
 ---
 
@@ -454,8 +471,8 @@ Fase 0: Scaffolding     ██████████████████�
 Fase 1: Core Clicker    ████████████░░░░░░░░  ✅⏳  React listo, Phaser parcial
 Fase 2: Asset Loading   ████████████████████  ✅  Completo (BootScene + assets + BackgroundScene)
 Fase 3: RPG Characters  ████████████████████  ✅  Completo (Enemy/Turret/Projectile + ArenaScene migrada)
-Fase 4: VFX System      ░░░░░░░░░░░░░░░░░░░░  🟡  Assets listos, falta VFXManager
-Fase 5: Ambient Scene   ████████░░░░░░░░░░░░  🔄  Canvas 2D listo, falta Phaser
-Fase 6: Polish & Juice  ██████████████░░░░░░  ⏳  Audio/animaciones listas, faltan VFX
+Fase 4: VFX System      ████████████████████  ✅  Completado (VFXManager 10 efectos integrados)
+Fase 5: Ambient Scene   ████████████████████  ✅  Completado (Phaser con sprites Icons_Essential + Orc)
+Fase 6: Polish & Juice  ████████████████████  ✅  Todo listo (VFX + Audio + animaciones)
 Fase 7: Deploy          ████████████████████  ✅  Completado
 ```

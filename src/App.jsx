@@ -8,7 +8,7 @@ import { Shop } from './components/Shop';
 import { ChallengeModal } from './components/ChallengeModal';
 import { WinScreen } from './components/WinScreen';
 import { Announcer } from './components/Announcer';
-import { AmbientScene } from './components/AmbientScene';
+import { AmbientPhaser } from './components/AmbientPhaser';
 import { PhaserGame } from './game/PhaserGame';
 
 // Animated sparkle background canvas (vanilla, same as before)
@@ -124,7 +124,7 @@ export function App() {
         </main>
       </div>
 
-      <AmbientScene />
+      <AmbientPhaser />
       <Announcer />
       <ChallengeModal />
       <WinScreen />

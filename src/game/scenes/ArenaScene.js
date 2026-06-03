@@ -6,6 +6,7 @@ import { createAnimations } from '../animations';
 import { Enemy } from '../entities/Enemy';
 import { Turret } from '../entities/Turret';
 import { Projectile } from '../entities/Projectile';
+import { VFXManager } from '../fx/VFXManager';
 
 export class ArenaScene extends Phaser.Scene {
   constructor() {
@@ -58,6 +59,16 @@ export class ArenaScene extends Phaser.Scene {
 
     this.bgGraphics = this.add.graphics();
     this.fxGraphics = this.add.graphics();
+
+    if (!this.textures.exists('sparkle')) {
+      const g = this.make.graphics({ add: false });
+      g.fillStyle(0xffffff, 1);
+      g.fillCircle(8, 8, 8);
+      g.generateTexture('sparkle', 16, 16);
+      g.destroy();
+    }
+
+    this.vfx = new VFXManager(this);
 
     const store = useGameStore.getState();
     const ownedUpgrades = UPGRADES.filter(u => (store.owned[u.id] || 0) >= 1);
@@ -138,6 +149,7 @@ export class ArenaScene extends Phaser.Scene {
         if (e.active && !e.isDead && p.active && !p.isDead) {
           const dist = Phaser.Math.Distance.Between(p.x, p.y, e.x, e.y);
           if (dist < e.radius + 10) {
+            if (this.vfx) this.vfx.splatter(p.x, p.y);
             const killed = e.takeDamage(p.projDamage);
             p.hit();
             if (killed) gs.kills++;

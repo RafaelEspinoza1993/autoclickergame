@@ -83,12 +83,37 @@ Arrancar Fase 2 del ROADMAP: sistema de carga de assets (BootScene + estructura 
 | **`ArenaScene.js` migrado a sprites + clases** | ✅ |
 | Build exitoso (`pnpm build`) | ✅ |
 
+### Sesión 2 — Fase 4: VFX System ✅
+
+| Tarea | Estado |
+|-------|--------|
+| `src/game/fx/VFXManager.js` con 10 efectos | ✅ |
+| Integración en `CoreScene` (clickSparkle via emitAt) | ✅ |
+| Integración en `ArenaScene` (explosion en muerte, splatter en impacto) | ✅ |
+| `arena:celebrate` listener en CoreScene (magicBurst) | ✅ |
+| ROADMAP.md Fase 4 actualizado | ✅ |
+| Build exitoso | ✅ |
+
+### Sesión 3 — Fase 5: Ambient Scene Phaser ✅
+
+| Tarea | Estado |
+|-------|--------|
+| `src/game/scenes/AmbientScene.js` — gradiente, estrellas, suelo, torretas, enemigos, disparos, partículas | ✅ |
+| `src/components/AmbientPhaser.jsx` — wrapper React con Phaser.Game + overlay UI | ✅ |
+| `App.jsx` actualizado para usar `AmbientPhaser` | ✅ |
+| Animación `ambient-orc-walk` registrada localmente | ✅ |
+| `arena:celebrate` listener para celebración | ✅ |
+| `Scale.RESIZE` + eventos resize en la escena | ✅ |
+| ROADMAP.md Fase 5 actualizado | ✅ |
+| Build exitoso | ✅ |
+
 ### Próximos pasos
 
-1. **Fase 4**: Crear `VFXManager.js` con efectos usando Super Pixel FX + Legacy explosion
-2. **Fase 5**: Migrar `AmbientScene.jsx` de Canvas 2D a Phaser scene con sprites/icons
-3. **Fase 6**: Integrar VFX en gameplay (clickSparkle, explosion, confetti, etc.)
+1. **Fase 6**: Polish — revisar que todas las integraciones VFX estén completas (smoke en storage, lightning en boss, confetti en win, etc.)
+2. **Super Pixel Effects**: Cargar spritesheets via `loadFXAtlas()` para usar en VFXManager en vez de sparkle procedural
+3. **VerArc Buffs**: Integrar sprites de buffs en UI (efectos pasivos, mejoras visuales)
 4. Evaluar "Effect and Bullet 16x16.rar" como assets adicionales
+5. Migrar `break_infinity.js` si monedas exceden 1e15
 
 ---
 
@@ -100,3 +125,5 @@ Arrancar Fase 2 del ROADMAP: sistema de carga de assets (BootScene + estructura 
 | 03/Jun/2026 | STATUS.md creado |
 | 03/Jun/2026 | Fase 2 completada: BootScene + assets + BackgroundScene + Super Pixel FX |
 | 03/Jun/2026 | Fase 3 completada: Enemy/Turret/Projectile classes + ArenaScene migrada |
+| 03/Jun/2026 | Fase 4 completada: VFXManager con 10 efectos integrados |
+| 03/Jun/2026 | Fase 5 completada: AmbientScene migrada a Phaser con sprites |
