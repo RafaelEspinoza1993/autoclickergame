@@ -43,10 +43,10 @@ const I18N = {
     // level titles (festive, absurd, NO targeting people)
     levels: [
       'Fábrica de\nArcoíris',
-      '¡Producción\nImparable!',
-      '¡Fiesta\nTotal!',
-      '🏆 Imperio del\nArcoíris 🏆',
-      '✨ Leyenda\nBrillante ✨',
+      '¡CÓMO LLEGUÉ\nHASTA ACÁ? 🤔',
+      '¡SOY UN\nPELIGRO\nPÚBLICO! 🚨',
+      '🏆 EL MISMÍSIMO\nARCOÍRIS 👑',
+      '✨ APOCALIPSIS\nARCOÍRIS ⚡',
     ],
     upgradeNames: {
       flag:   'Bandera Arcoíris',
@@ -118,10 +118,10 @@ const I18N = {
     locked: 'Locked',
     levels: [
       'Rainbow\nFactory',
-      'Production\nUnstoppable!',
-      'Total\nParty!',
-      '🏆 Rainbow\nEmpire 🏆',
-      '✨ Shining\nLegend ✨',
+      'HOW DID I\nGET HERE? 🤔',
+      'I\'M A PUBLIC\nMENACE! 🚨',
+      '🏆 THE ONE\nAND ONLY 👑',
+      '✨ RAINBOW\nAPOCALYPSE ⚡',
     ],
     upgradeNames: {
       flag:   'Rainbow Flag',
