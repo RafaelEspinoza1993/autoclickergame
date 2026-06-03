@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arcoíris Inc. — Rainbow Clicker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/styles.css?v=2" />
+</head>
+<body>
+  <canvas id="bg"></canvas>
+  <div class="aurora"></div>
+
+  <div class="shell">
+    <!-- top bar -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div>
+          <div class="brand-name">ARCOÍRIS <b>INC.</b></div>
+          <div class="brand-sub" id="brand-sub">Fábrica de arcoíris S.A.</div>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="lang-toggle">
+          <button data-lang="es" class="active">ES</button>
+          <button data-lang="en">EN</button>
+        </div>
+        <button class="icon-btn" id="mute" title="Silenciar">🔊</button>
+      </div>
+    </header>
+
+    <!-- stage -->
+    <main class="stage">
+      <!-- hero / clicker -->
+      <section class="hero">
+        <div class="counter">
+          <div class="counter-num">
+            <span class="spark">✨</span>
+            <span id="coin-amount">0</span>
+          </div>
+          <div class="counter-label" id="counter-label">chispas producidas</div>
+          <div class="rate-pill"><span class="dot"></span><span id="coin-rate">+0/s</span></div>
+          <div class="rate-pill click-pill"><span>👆</span><span id="click-pow">+1/clic</span></div>
+        </div>
+
+        <div class="storage-bar-wrap" id="storage-bar-wrap">
+          <div class="storage-label">
+            <span id="storage-label-text">Almacén</span>
+            <span id="storage-bar-text">0 / 500</span>
+          </div>
+          <div class="storage-track"><div class="storage-fill" id="storage-fill"></div></div>
+        </div>
+
+        <div class="title" id="title">Fábrica de<br>Arcoíris</div>
+
+        <div class="core-wrap">
+          <button class="core" id="core" aria-label="Producir arcoíris">
+            <span class="glyph">🌈</span>
+          </button>
+        </div>
+        <div class="core-hint" id="core-hint">¡DALE CLIC AL NÚCLEO!</div>
+
+        <div class="next-challenge">
+          <div class="nc-label">
+            <span id="nc-label">Próximo reto</span>
+            <span id="nc-clicks">500 clics</span>
+          </div>
+          <div class="nc-track"><div class="nc-fill" id="nc-fill"></div></div>
+        </div>
+      </section>
+
+      <!-- shop -->
+      <section class="shop">
+        <div class="shop-head">
+          <div class="shop-title">🏭 <span id="shop-title-text">Fábrica</span></div>
+          <div class="shop-count" id="shop-count">0/7</div>
+        </div>
+        <div class="shop-grid" id="shop-grid"></div>
+
+        <div class="shop-divider"></div>
+        <div class="shop-head">
+          <div class="shop-title">⚡ <span id="click-shop-title-text">Técnica de Clic</span></div>
+          <div class="shop-count" id="click-shop-count">0/5</div>
+        </div>
+        <div class="shop-grid" id="click-shop-grid"></div>
+
+        <div class="shop-divider"></div>
+        <div class="shop-head">
+          <div class="shop-title">📦 <span id="storage-shop-title-text">Almacén</span></div>
+          <div class="shop-count" id="storage-shop-count">0/5</div>
+        </div>
+        <div class="shop-grid" id="storage-shop-grid"></div>
+
+        <div class="statusbar">
+          <span id="stat-total">total: <b>0</b></span>
+          <span id="stat-upg">mejoras: <b>0/7</b></span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ambient corner scene -->
+  <div class="ambient" id="ambient">
+    <div class="ambient-tag">FÁBRICA · LIVE</div>
+    <canvas id="ambient-canvas"></canvas>
+  </div>
+
+  <!-- MK-style announcer -->
+  <div class="announce" id="announce"></div>
+
+  <!-- challenge modal -->
+  <div class="challenge" id="challenge">
+    <div class="ch-panel">
+      <div class="ch-head">
+        <div>
+          <div class="ch-title" id="ch-title">¡RETO RELÁMPAGO!</div>
+          <div class="ch-instr" id="ch-instr"></div>
+        </div>
+        <div class="ch-stats">
+          <div class="ch-stat">
+            <div class="k"><span id="ch-wave-lab">oleada</span></div>
+            <div class="v" id="ch-wave">1</div>
+          </div>
+          <div class="ch-stat">
+            <div class="k"><span id="ch-kills-lab">Caídos</span></div>
+            <div class="v" id="ch-kills">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ch-bars">
+        <div class="ch-bar">
+          <div class="lab"><span id="ch-hp-lab">Fábrica</span><span>❤</span></div>
+          <div class="ch-track hp"><div id="ch-hp" style="width:100%"></div></div>
+        </div>
+        <div class="ch-bar">
+          <div class="lab"><span id="ch-time-lab">Tiempo</span><span>⏱</span></div>
+          <div class="ch-track time"><div id="ch-time" style="width:100%"></div></div>
+        </div>
+      </div>
+
+      <div class="ch-canvas-wrap" id="ch-canvas-wrap">
+        <canvas id="ch-canvas"></canvas>
+        <div class="ch-result" id="ch-result">
+          <h2 id="ch-result-title">¡SOBREVIVISTE!</h2>
+          <p id="ch-result-sub"></p>
+          <div class="reward" id="ch-result-reward"></div>
+          <button class="ch-continue" id="ch-continue">Seguir produciendo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WIN screen -->
+  <div class="win" id="win">
+    <div class="kiss">💋</div>
+    <h1 id="win-title">¡GANASTE EL JUEGO!</h1>
+    <p id="win-sub"></p>
+    <button class="win-btn" id="win-btn">Seguir clicando por gusto</button>
+  </div>
+
+  <script>
+    // ── animated sparkle backdrop ──────────────────────────────
+    (function(){
+      const cv = document.getElementById('bg'), x = cv.getContext('2d');
+      let W,H,ps=[];
+      const COLORS=['#ff2d6f','#ff8a3d','#ffe24d','#4dff9e','#3dd6ff','#9a6bff','#ff5ed6'];
+      function resize(){ W=cv.width=innerWidth; H=cv.height=innerHeight; }
+      function P(){ this.reset(true); }
+      P.prototype.reset=function(init){ this.x=Math.random()*W; this.y=init?Math.random()*H:H+10; this.r=Math.random()*2.4+0.6; this.c=COLORS[(Math.random()*COLORS.length)|0]; this.s=Math.random()*0.5+0.15; this.dx=(Math.random()-.5)*0.3; this.a=Math.random()*0.5+0.15; };
+      P.prototype.step=function(){ this.y-=this.s; this.x+=this.dx; if(this.y<-10)this.reset(); };
+      function init(){ ps=Array.from({length:70},()=>new P()); }
+      function loop(){ x.clearRect(0,0,W,H); ps.forEach(p=>{p.step(); x.save(); x.globalAlpha=p.a; x.fillStyle=p.c; x.shadowBlur=6; x.shadowColor=p.c; x.beginPath(); x.arc(p.x,p.y,p.r,0,7); x.fill(); x.restore();}); requestAnimationFrame(loop); }
+      resize(); init(); loop(); addEventListener('resize',()=>{resize();init();});
+    })();
+  </script>
+  <script src="assets/i18n.js"></script>
+  <script src="assets/audio.js"></script>
+  <script src="assets/arena.js"></script>
+  <script src="assets/core.js"></script>
+</body>
+</html>
