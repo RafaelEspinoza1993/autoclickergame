@@ -467,7 +467,9 @@ function updateMuteLabel() {
 }
 muteBtn.addEventListener('click', () => {
   Audio8.ensure();
-  Audio8.setMuted(!Audio8.isMuted());
+  const m = !Audio8.isMuted();
+  Audio8.setMuted(m);
+  if (window.YTPlayer) { m ? YTPlayer.mute() : YTPlayer.unMute(); }
   updateMuteLabel();
 });
 
