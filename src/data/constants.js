@@ -13,8 +13,8 @@ export const UPGRADES = [
 ];
 
 export const STORAGE_UPGRADES = [
-  { id:'st1', emoji:'📦', cost:150,     cap:2000,     color:'#ff8a3d' },
-  { id:'st2', emoji:'🏪', cost:2500,    cap:15000,    color:'#ffe24d' },
+  { id:'st1', emoji:'📦', cost:150,     cap:5000,     color:'#ff8a3d' },
+  { id:'st2', emoji:'🏪', cost:2500,    cap:20000,    color:'#ffe24d' },
   { id:'st3', emoji:'🏭', cost:25000,   cap:150000,   color:'#4dff9e' },
   { id:'st4', emoji:'🏙️', cost:300000,  cap:2000000,  color:'#9a6bff' },
   { id:'st5', emoji:'♾️', cost:3000000, cap:Infinity, color:'#ff5ed6' },

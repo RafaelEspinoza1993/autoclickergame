@@ -9,7 +9,10 @@ export function ChallengeModal() {
   const wave = useGameStore(s => s.challengeWave);
   const lang = useGameStore(s => s.lang);
   const closeChallenge = useGameStore(s => s.closeChallenge);
+  const storageLevel = useGameStore(s => s.storageLevel);
   const tx = I18N[lang];
+
+  const reward = 200 + storageLevel * 50;
 
   const hpBarRef = useRef(null);
   const timeBarRef = useRef(null);
@@ -81,7 +84,7 @@ export function ChallengeModal() {
                 {challengeResult === 'win' ? tx.winSub : tx.loseSub}
               </p>
               {challengeResult === 'win' && (
-                <div className="reward">{tx.reward(200)}</div>
+                <div className="reward">{tx.reward(reward)}</div>
               )}
               <button className="ch-continue" onClick={closeChallenge}>
                 {tx.continue}

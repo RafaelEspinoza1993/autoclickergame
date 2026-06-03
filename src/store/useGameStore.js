@@ -205,7 +205,10 @@ export const useGameStore = create((set, get) => ({
 
   endChallenge(survived) {
     if (survived) {
-      get().addCoins(200);
+      const state = get();
+      const storageBonus = state.storageLevel * 50;
+      const reward = 200 + storageBonus;
+      get().addCoins(reward);
       Audio8.fanfare();
       launchConfetti(120);
     } else {

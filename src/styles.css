@@ -339,7 +339,7 @@ button { font-family: inherit; cursor: pointer; }
 /* ── ambient corner ────────────────────────────────────────────── */
 .ambient {
   position: fixed; bottom: 14px; right: 14px;
-  width: min(26vw, 320px); height: min(22vh, 190px);
+  width: min(40vw, 520px); height: min(32vh, 300px);
   z-index: 6; border-radius: 14px; overflow: hidden;
   border: 1px solid var(--line); box-shadow: 0 16px 40px rgba(0,0,0,0.45);
   pointer-events: none; opacity: .92; transition: opacity .3s, transform .3s var(--ease);

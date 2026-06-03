@@ -65,11 +65,13 @@ export function createAnimations(scene) {
     frameRate: 10, repeat: 0
   });
 
+  const frames = [];
+  for (let i = 0; i <= 8; i++) {
+    frames.push({ key: 'explosion', frame: `explosion-animation ${i}.ase` });
+  }
   scene.anims.create({
     key: 'explode',
-    frames: scene.anims.generateFrameNames('explosion', {
-      prefix: 'frame', start: 0, end: 8
-    }),
+    frames,
     frameRate: 14, repeat: 0
   });
 }
