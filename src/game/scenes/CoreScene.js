@@ -12,11 +12,13 @@ export class CoreScene extends Phaser.Scene {
   }
 
   create() {
-    const g = this.make.graphics({ add: false });
-    g.fillStyle(0xffffff, 1);
-    g.fillCircle(8, 8, 8);
-    g.generateTexture('sparkle', 16, 16);
-    g.destroy();
+    if (!this.textures.exists('sparkle')) {
+      const g = this.make.graphics({ add: false });
+      g.fillStyle(0xffffff, 1);
+      g.fillCircle(8, 8, 8);
+      g.generateTexture('sparkle', 16, 16);
+      g.destroy();
+    }
 
     this.emitter = this.add.particles(0, 0, 'sparkle', {
       tint: TINT_COLORS,
@@ -30,7 +32,6 @@ export class CoreScene extends Phaser.Scene {
     });
   }
 
-  // Called externally from React when core is clicked
   emitAt(screenX, screenY) {
     const canvas = this.sys.game.canvas;
     const rect = canvas.getBoundingClientRect();

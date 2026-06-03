@@ -1,5 +1,7 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import Phaser from 'phaser';
+import { BootScene } from './scenes/BootScene';
+import { BackgroundScene } from './scenes/BackgroundScene';
 import { CoreScene } from './scenes/CoreScene';
 
 const PhaserGame = forwardRef(function PhaserGame(_, ref) {
@@ -22,7 +24,7 @@ const PhaserGame = forwardRef(function PhaserGame(_, ref) {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
       },
-      scene: [CoreScene],
+      scene: [BootScene, BackgroundScene, CoreScene],
     });
     gameRef.current = game;
     return () => { game.destroy(true); gameRef.current = null; };
